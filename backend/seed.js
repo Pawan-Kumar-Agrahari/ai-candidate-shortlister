@@ -1,6 +1,6 @@
+require('dotenv').config();
 const mongoose = require('./utils/mockMongoose'); // Using mock local database
 const Candidate = require('./models/Candidate');
-require('dotenv').config();
 
 const seedData = [
   {
@@ -37,7 +37,7 @@ const seedData = [
   }
 ];
 
-mongoose.connect()
+mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('Seeding data to local db.json...');
     await Candidate.deleteMany({});

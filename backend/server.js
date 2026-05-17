@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('./utils/mockMongoose'); // Using mock local database
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,8 +21,8 @@ app.use('/api/match', matchRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/shortlists', shortlistRoutes);
 
-// Connect to mock database and start server
-mongoose.connect()
+// Connect to database and start server
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

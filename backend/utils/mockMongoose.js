@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const dbPath = path.join(__dirname, '../db.json');
+const realMongoose = require('mongoose');
 
 // Ensure db.json exists with initial schema
 if (!fs.existsSync(dbPath)) {
@@ -42,7 +43,6 @@ class MockModel {
     const rawItems = db[this.collectionName] || [];
     const items = rawItems.map(decorateDoc);
     
-    // Attach mongoose-like chaining methods directly to the array
     items.sort = function(sortObj) {
       return items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     };
@@ -127,16 +127,31 @@ class MockModel {
   }
 }
 
-module.exports = {
-  connect: async () => {
-    console.log('Using Local JSON File Database (db.json)');
-    return true;
-  },
-  model: (name) => {
-    const collectionName = name.toLowerCase() + 's';
-    return new MockModel(collectionName);
-  },
-  Schema: class Schema {
-    constructor() {}
-  }
-};
+const isMongoUriConfigured = process.env.MONGODB_URI && 
+  process.env.MONGODB_URI !== 'mongodb://localhost:27017/candidate-shortlisting' &&
+  !process.env.MONGODB_URI.includes('<password>') &&
+  process.env.MONGODB_URI.trim() !== '';
+
+let activeMongooseExport;
+
+if (isMongoUriConfigured) {
+  console.log('MongoDB Atlas URI detected. Connecting to Real MongoDB Cloud database...');
+  activeMongooseExport = realMongoose;
+} else {
+  console.log('No valid MongoDB Cloud URI detected. Falling back to Local JSON File Database (db.json)');
+  activeMongooseExport = {
+    connect: async () => {
+      console.log('Connected to Local JSON File Database (db.json)');
+      return true;
+    },
+    model: (name) => {
+      const collectionName = name.toLowerCase() + 's';
+      return new MockModel(collectionName);
+    },
+    Schema: class Schema {
+      constructor() {}
+    }
+  };
+}
+
+module.exports = activeMongooseExport;
