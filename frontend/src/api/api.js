@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const API = axios.create({
-  baseURL: 'https://ai-recruiter-backend-sfbf.onrender.com',
+  baseURL: isLocal ? 'http://localhost:5000/api' : 'https://ai-recruiter-backend-sfbf.onrender.com/api',
 });
 
 // Request interceptor
